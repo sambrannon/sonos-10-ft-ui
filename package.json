@@ -26,7 +26,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "node_modules/nodemon/bin/nodemon.js server/server.js",
-    "serve-build": "node_modules/serve/bin/serve.js build -l 80",
+    "serve-build": "node_modules/serve/bin/serve.js build -l 3002",
     "run-all": "yarn build && yarn serve-build && yarn server"
   },
   "eslintConfig": {
