@@ -1,26 +1,30 @@
 import React, { Component } from 'react';
 import VolumeIndicator from './VolumeIndicator';
+import ModeIndicator from './ModeIndicator';
 
 const wsURL = `${process.env.REACT_APP_WSS_URL}:${process.env.REACT_APP_WSS_PORT}`;
 
 class App extends Component {
   state = {
-    webhookData: '',
     previousVolume: 0,
     newVolume: 0,
-    roomName: '',
+    nightModeEnabled: false,
+    speechEnhancementEnabled: false,
   };
 
   ws = new WebSocket(wsURL);
 
   componentDidMount() {
-    console.log(wsURL);
-
     // we should be grabbing the state of our app on initial load...
     fetch(process.env.REACT_APP_SONOS_STATE_URL)
       .then(response => response.json())
       .then(data => {
-        this.setState({ newVolume: data.volume });
+        console.log(data);
+        this.setState({
+          newVolume: data.volume,
+          speechEnhancementEnabled: data.equalizer.speechEnhancement,
+          nightModeEnabled: data.equalizer.nightMode,
+        });
       });
 
     this.ws.onopen = () => {
@@ -28,19 +32,15 @@ class App extends Component {
     }
 
     this.ws.onmessage = (evt) => {
-      const { type, data } = JSON.parse(evt.data);
+      const { data } = JSON.parse(evt.data);
 
-      if (type === 'volume-change') {
+      if (data.newVolume && data.previousVolume) {
         this.setState({
-          webhookData: data,
           previousVolume: data.previousVolume,
           newVolume: data.newVolume,
-          roomName: data.roomName,
         });
       } else {
-        this.setState({
-          newVolume: data.groupState.volume,
-        })
+        console.log(data);
       }
     }
 
@@ -50,11 +50,25 @@ class App extends Component {
   }
 
   render() {
-    const { previousVolume, newVolume } = this.state;
+    const {
+      previousVolume,
+      newVolume,
+      nightModeEnabled,
+      speechEnhancementEnabled,
+    } = this.state;
 
     return (
       <div className="app">
-        <VolumeIndicator previousVolume={previousVolume} newVolume={newVolume} />
+        <div className="app__inner">
+          <VolumeIndicator
+            previousVolume={previousVolume}
+            newVolume={newVolume}
+          />
+          <ModeIndicator
+            nightModeEnabled={nightModeEnabled}
+            speechEnhancementEnabled={speechEnhancementEnabled}
+          />
+        </div>
       </div>
     );
   }
